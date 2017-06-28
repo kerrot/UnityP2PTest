@@ -32,3 +32,7 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+/Assets/Monobit Unity Networking/Samples
+/Assets/UnityChan
+/Assets/Monobit Unity Networking/Samples.meta
+/Assets/UnityChan.meta

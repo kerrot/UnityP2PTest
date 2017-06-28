@@ -1,4 +1,7 @@
-﻿public enum DataType
+﻿using System;
+
+[Serializable]
+public enum DataType
 {
     DataLightColor,
     DataLightIntensity,
