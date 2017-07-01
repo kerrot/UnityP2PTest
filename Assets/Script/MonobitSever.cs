@@ -22,8 +22,6 @@ public class MonobitSever : MonobitEngine.MonoBehaviour
     const string roomName = "TCARoom";
     const string serverName = "TCAVRZemi";
 
-    List<MonobitComponent.MonobitObject> objs = new List<MonobitComponent.MonobitObject>();
-
     private void Start()
     {
         MonobitNetwork.updateStreamRate = updateStreamRate;
@@ -55,19 +53,5 @@ public class MonobitSever : MonobitEngine.MonoBehaviour
     private void OnJoinedRoom()
     {
         Debug.Log("Enter Room.");
-
-        if (MonobitNetwork.isHost)
-        {
-            objs.ForEach(o =>
-            {
-                UnityEngine.Object m = Resources.Load(o.name);
-                GameObject tmp = MonobitNetwork.Instantiate(o.name, o.position, o.rotation, 0);
-            });
-        }
-    }
-
-    public void AddObject(MonobitComponent.MonobitObject obj)
-    {
-        objs.Add(obj);
     }
 }

@@ -28,12 +28,7 @@ public class DateHolder : UnityEngine.MonoBehaviour
 
         updateList.ForEach(t =>
         {
-            if (!dataMapping.ContainsKey(t))
-            {
-                string str = Enum.GetName(typeof(DataType), t);
-                DataBase db = Activator.CreateInstance(Type.GetType(str)) as DataBase;
-                dataMapping.Add(t, db);
-            }
+            CheckMappingExist(t);
 
             DataBase.DataDetail detail = dataMapping[t].UpdateData(gameObject);
             data.Add(detail);
@@ -48,15 +43,20 @@ public class DateHolder : UnityEngine.MonoBehaviour
         {
             p.Data.ForEach(d =>
             {
-                if (!dataMapping.ContainsKey(d.Type))
-                {
-                    string str = Enum.GetName(typeof(DataType), d.Type);
-                    DataBase db = Activator.CreateInstance(Type.GetType(str)) as DataBase;
-                    dataMapping.Add(d.Type, db);
-                }
+                CheckMappingExist(d.Type);
 
                 dataMapping[d.Type].Apply(gameObject, d);
             });
         });
+    }
+
+    private void CheckMappingExist(DataType type)
+    {
+        if (!dataMapping.ContainsKey(type))
+        {
+            string str = Enum.GetName(typeof(DataType), type);
+            DataBase db = Activator.CreateInstance(Type.GetType(str)) as DataBase;
+            dataMapping.Add(type, db);
+        }
     }
 }
