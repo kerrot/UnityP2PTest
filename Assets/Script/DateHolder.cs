@@ -6,6 +6,8 @@ using MonobitEngine;
 using UniRx;
 using UniRx.Triggers;
 
+using System.Runtime.InteropServices;
+
 public class DateHolder : UnityEngine.MonoBehaviour
 {
     [SerializeField]
@@ -15,6 +17,7 @@ public class DateHolder : UnityEngine.MonoBehaviour
 
     Dictionary<DataType, DataBase> dataMapping = new Dictionary<DataType, DataBase>();
 
+    int BASE_SIZE = Marshal.SizeOf(typeof(int));
     List<byte> data = new List<byte>();
 
     MonobitView view;
@@ -36,7 +39,14 @@ public class DateHolder : UnityEngine.MonoBehaviour
             data.AddRange(dataMapping[t].UpdateData(gameObject));
         });
 
-        return data;
+        if (data.Count > BASE_SIZE)
+        {
+            return data;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public void Apply(List<byte> package)
@@ -59,17 +69,6 @@ public class DateHolder : UnityEngine.MonoBehaviour
                 count += db.DataLength + 1;
             } while (package.Count > count);
         }
-
-
-        //package.ToObservable().Where(p => p.ID == view.viewID).Subscribe(p =>
-        //{
-        //    p.Data.ForEach(d =>
-        //    {
-        //        CheckMappingExist(d.Type);
-
-        //        dataMapping[d.Type].Apply(gameObject, d);
-        //    });
-        //});
     }
 
     private void CheckMappingExist(DataType type)

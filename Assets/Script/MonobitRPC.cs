@@ -36,8 +36,11 @@ public class MonobitRPC : MonobitEngine.MonoBehaviour
         holders.ToObservable().Subscribe(h => 
         {
             List<byte> tmp = h.GetData();
-            packages.AddRange((BitConverter.GetBytes(tmp.Count)));
-            packages.AddRange(tmp);
+            if (tmp != null)
+            {
+                packages.AddRange((BitConverter.GetBytes(tmp.Count)));
+                packages.AddRange(tmp);
+            }
         });
 
         if (packages.Count > 0)

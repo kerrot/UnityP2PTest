@@ -26,12 +26,13 @@ public class DataLightIntensity : DataBase
 
     public override List<byte> UpdateData(GameObject obj)
     {
+        data.Clear();
+
         Light l = obj.GetComponent<Light>();
-        if (l)
+        if (l && intensity != l.intensity)
         {
             intensity = l.intensity;
 
-            data.Clear();
             data.Add((byte)DataType.DataLightIntensity);
             data.AddRange(BitConverter.GetBytes(intensity));
         }
