@@ -3,6 +3,6 @@
 [Serializable]
 public enum DataType
 {
-    DataLightColor,
+    DataLightColor          = 1,
     DataLightIntensity,
 }

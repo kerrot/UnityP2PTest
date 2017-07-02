@@ -8,15 +8,13 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public abstract class DataBase
 {
-    [Serializable]
-    public struct DataDetail
-    {
-        public DataType Type;
-        public byte[] Data;
-    }
+    protected int dataLength;
+    public int DataLength { get { return dataLength; } }
 
-    public abstract void Apply(GameObject obj, DataDetail data);
-    public abstract DataDetail UpdateData(GameObject obj);
+    protected List<byte> data = new List<byte>();
+
+    public abstract void Apply(GameObject obj, List<byte> data);
+    public abstract List<byte> UpdateData(GameObject obj);
 
     
     protected Type Deserialize<Type>(byte[] data)

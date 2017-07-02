@@ -11,9 +11,11 @@ public class DateHolder : UnityEngine.MonoBehaviour
     [SerializeField]
     private List<DataType> updateList = new List<DataType>();
 
+    public int ID { get { return view ? view.viewID : 0; } }
+
     Dictionary<DataType, DataBase> dataMapping = new Dictionary<DataType, DataBase>();
 
-    List<DataBase.DataDetail> data = new List<DataBase.DataDetail>();
+    List<byte> data = new List<byte>();
 
     MonobitView view;
 
@@ -22,32 +24,52 @@ public class DateHolder : UnityEngine.MonoBehaviour
         view = GetComponent<MonobitView>();
     }
 
-    public List<DataBase.DataDetail> GetData()
+    public List<byte> GetData()
     {
         data.Clear();
+        data.AddRange(BitConverter.GetBytes(view.viewID));
 
         updateList.ForEach(t =>
         {
             CheckMappingExist(t);
 
-            DataBase.DataDetail detail = dataMapping[t].UpdateData(gameObject);
-            data.Add(detail);
+            data.AddRange(dataMapping[t].UpdateData(gameObject));
         });
 
         return data;
     }
 
-    public void Apply(List<MonobitRPC.DataPackage> package)
+    public void Apply(List<byte> package)
     {
-        package.ToObservable().Where(p => p.ID == view.viewID).Subscribe(p =>
+        if (package != null && package.Count > 0)
         {
-            p.Data.ForEach(d =>
-            {
-                CheckMappingExist(d.Type);
+            int count = 0;
 
-                dataMapping[d.Type].Apply(gameObject, d);
-            });
-        });
+            do
+            {
+                DataType type = (DataType)package[count];
+                CheckMappingExist(type);
+
+                DataBase db = dataMapping[type];
+                if (package.Count >= count + 1 + db.DataLength)
+                {
+                    db.Apply(gameObject, package.GetRange(count + 1, db.DataLength));
+                }
+
+                count += db.DataLength + 1;
+            } while (package.Count > count);
+        }
+
+
+        //package.ToObservable().Where(p => p.ID == view.viewID).Subscribe(p =>
+        //{
+        //    p.Data.ForEach(d =>
+        //    {
+        //        CheckMappingExist(d.Type);
+
+        //        dataMapping[d.Type].Apply(gameObject, d);
+        //    });
+        //});
     }
 
     private void CheckMappingExist(DataType type)
@@ -55,8 +77,11 @@ public class DateHolder : UnityEngine.MonoBehaviour
         if (!dataMapping.ContainsKey(type))
         {
             string str = Enum.GetName(typeof(DataType), type);
-            DataBase db = Activator.CreateInstance(Type.GetType(str)) as DataBase;
-            dataMapping.Add(type, db);
+            if (str != null)
+            {
+                DataBase db = Activator.CreateInstance(Type.GetType(str)) as DataBase;
+                dataMapping.Add(type, db);
+            }
         }
     }
 }

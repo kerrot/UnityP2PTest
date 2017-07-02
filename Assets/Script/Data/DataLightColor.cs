@@ -9,25 +9,29 @@ public class DataLightColor : DataBase
 {
     float[] color = new float[4];
 
-    public override void Apply(GameObject obj, DataDetail data)
+    public DataLightColor()
+    {
+        dataLength = Marshal.SizeOf(typeof(float)) * 4;
+    }
+
+    public override void Apply(GameObject obj, List<byte> data)
     {
         Light l = obj.GetComponent<Light>();
         if (l)
         {
             int unit = Marshal.SizeOf(typeof(float));
+            byte[] tmpData = data.ToArray();
 
-            color[0] = BitConverter.ToSingle(data.Data, 0);
-            color[1] = BitConverter.ToSingle(data.Data, unit);
-            color[2] = BitConverter.ToSingle(data.Data, unit * 2);
-            color[3] = BitConverter.ToSingle(data.Data, unit * 3);
+            color[0] = BitConverter.ToSingle(tmpData, 0);
+            color[1] = BitConverter.ToSingle(tmpData, unit);
+            color[2] = BitConverter.ToSingle(tmpData, unit * 2);
+            color[3] = BitConverter.ToSingle(tmpData, unit * 3);
             l.color = new Color(color[0], color[1], color[2], color[3]);
         }
     }
 
-    public override DataDetail UpdateData(GameObject obj)
+    public override List<byte> UpdateData(GameObject obj)
     {
-        DataDetail detail = new DataDetail();
-
         Light l = obj.GetComponent<Light>();
         if (l)
         {
@@ -36,10 +40,11 @@ public class DataLightColor : DataBase
             color[2] = l.color.b;
             color[3] = l.color.a;
 
-            detail.Type = DataType.DataLightColor;
-            detail.Data = color.ToByteArray();
+            data.Clear();
+            data.Add((byte)DataType.DataLightColor);
+            data.AddRange(color.ToByteArray());
         }
 
-        return detail;
+        return data;
     }
 }

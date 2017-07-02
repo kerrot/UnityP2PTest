@@ -3,33 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using MonobitEngine;
 using System;
+using System.Linq;
 using UniRx;
 using UniRx.Triggers;
 
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.InteropServices;
 
 public class MonobitRPC : MonobitEngine.MonoBehaviour
 {
     [SerializeField]
     private float updatePeriod = 1;
 
-    [Serializable]
-    public struct DataPackage
-    {
-        public int ID;
-        public List<DataBase.DataDetail> Data;
-    }
-
-    int count = 0;
-    string msg;
-    void OnGUI()
-    {
-        GUI.color = Color.white;
-        GUILayout.Label(msg);
-    }
-
-    List<DataPackage> packages = new List<DataPackage>();
+    List<byte> packages = new List<byte>();
 
     private void Start()
     {
@@ -46,39 +33,58 @@ public class MonobitRPC : MonobitEngine.MonoBehaviour
         packages.Clear();
 
         DateHolder[] holders = GameObject.FindObjectsOfType<DateHolder>();
-        holders.ToObservable().Subscribe(h =>
+        holders.ToObservable().Subscribe(h => 
         {
-            MonobitView view = h.gameObject.GetComponent<MonobitView>();
-            if (view)
-            {
-                DataPackage pack = new DataPackage();
-                pack.ID = view.viewID;
-                pack.Data = h.GetData();
-
-                packages.Add(pack);
-            }
+            List<byte> tmp = h.GetData();
+            packages.AddRange((BitConverter.GetBytes(tmp.Count)));
+            packages.AddRange(tmp);
         });
 
         if (packages.Count > 0)
         {
-            MemoryStream stream = new MemoryStream();
-            BinaryFormatter myBinaryFormatter = new BinaryFormatter();
-            myBinaryFormatter.Serialize(stream, packages);
-
-            monobitView.RPC("RecvUpdate", MonobitTargets.Others, stream.ToArray());
+            monobitView.RPC("RecvUpdate", MonobitTargets.All, packages.ToArray());
         }
+    }
+
+
+    int debug = 0;
+    string debugMsg;
+    void OnGUI()
+    {
+        GUI.color = Color.white;
+        GUILayout.Label(debugMsg);
     }
 
     [MunRPC]
     void RecvUpdate(byte[] buffer)
     {
-        msg = count++.ToString() + " ";
+        debugMsg = debug++.ToString() + " " + buffer.Length.ToString();
 
-        MemoryStream stream = new MemoryStream(buffer);
-        BinaryFormatter myBinaryFormatter = new BinaryFormatter();
-        List<DataPackage> tmpData = (List<DataPackage>)myBinaryFormatter.Deserialize(stream);
+        List<byte> total = buffer.ToList();
 
-        DateHolder[] holders = GameObject.FindObjectsOfType<DateHolder>();
-        holders.ToObservable().Subscribe(h => h.Apply(tmpData));
+        if (total.Count > 0)
+        {
+            int count = 0;
+            int intSize = Marshal.SizeOf(typeof(int)); ;
+
+            DateHolder[] holders = GameObject.FindObjectsOfType<DateHolder>();
+
+            do
+            {
+                int length = BitConverter.ToInt32(buffer, count);
+                if (total.Count >= length + count + intSize)
+                {
+                    List<byte> tmp = total.GetRange(count + intSize, length);
+                    int id = BitConverter.ToInt32(tmp.ToArray(), 0);
+                    DateHolder holder = holders.SingleOrDefault(h => h.ID == id);
+                    if (holder)
+                    {
+                        holder.Apply(tmp.GetRange(intSize, tmp.Count - intSize));
+                    }
+                }
+
+                count += intSize + length;
+            } while (total.Count > count);
+        }
     }
 }

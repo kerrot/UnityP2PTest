@@ -3,32 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+using System.Runtime.InteropServices;
 
 public class DataLightIntensity : DataBase
 {
     float intensity;
 
-    public override void Apply(GameObject obj, DataDetail data)
+    public DataLightIntensity()
+    {
+        dataLength = Marshal.SizeOf(typeof(float));
+    }
+
+    public override void Apply(GameObject obj, List<byte> data)
     {
         Light l = obj.GetComponent<Light>();
         if (l)
         {
-            l.intensity = BitConverter.ToSingle(data.Data, 0);
+            intensity = BitConverter.ToSingle(data.ToArray(), 0);
+            l.intensity = intensity;
         }
     }
 
-    public override DataDetail UpdateData(GameObject obj)
+    public override List<byte> UpdateData(GameObject obj)
     {
-        DataDetail detail = new DataDetail();
-
         Light l = obj.GetComponent<Light>();
         if (l)
         {
             intensity = l.intensity;
-            detail.Type = DataType.DataLightIntensity;
-            detail.Data = BitConverter.GetBytes(intensity);
+
+            data.Clear();
+            data.Add((byte)DataType.DataLightIntensity);
+            data.AddRange(BitConverter.GetBytes(intensity));
         }
 
-        return detail;
+        return data;
     }
 }
