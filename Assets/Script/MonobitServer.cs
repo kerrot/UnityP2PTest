@@ -35,7 +35,10 @@ public class MonobitServer : MonobitEngine.MonoBehaviour
 
         MonobitNetwork.autoJoinLobby = true;
 
-		ConnectServer ();
+        if (!MonobitNetwork.inRoom)
+        {
+            ConnectServer();
+        }
     }
 
     private void OnDisconnectedFromServer()
@@ -43,7 +46,11 @@ public class MonobitServer : MonobitEngine.MonoBehaviour
         Debug.Log("Disconnected.");
 		if (reconnect) 
 		{
-			ConnectServer ();
+            // Cannot connect immediately.....need to find out why...
+            Observable.Timer(System.TimeSpan.FromSeconds(3)).Subscribe(_ =>
+            {
+                ConnectServer ();
+            });
 			reconnect = false;
 		}
     }
