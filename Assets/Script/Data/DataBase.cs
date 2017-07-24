@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 public abstract class DataBase
 {
@@ -17,19 +16,19 @@ public abstract class DataBase
     public abstract List<byte> UpdateData(GameObject obj);
 
     
-    protected Type Deserialize<Type>(byte[] data)
-    {
-        MemoryStream stream = new MemoryStream(data);
-        BinaryFormatter myBinaryFormatter = new BinaryFormatter();
-        return (Type)myBinaryFormatter.Deserialize(stream);
-    }
+    //protected Type Deserialize<Type>(byte[] data)
+    //{
+    //    MemoryStream stream = new MemoryStream(data);
+    //    BinaryFormatter myBinaryFormatter = new BinaryFormatter();
+    //    return (Type)myBinaryFormatter.Deserialize(stream);
+    //}
 
-    protected byte[] Serialize<Type>(object data)
-    {
-        MemoryStream stream = new MemoryStream();
-        BinaryFormatter myBinaryFormatter = new BinaryFormatter();
-        myBinaryFormatter.Serialize(stream, data);
+    //protected byte[] Serialize<Type>(object data)
+    //{
+    //    MemoryStream stream = new MemoryStream();
+    //    BinaryFormatter myBinaryFormatter = new BinaryFormatter();
+    //    myBinaryFormatter.Serialize(stream, data);
 
-        return stream.ToArray();
-    }
+    //    return stream.ToArray();
+    //}
 }

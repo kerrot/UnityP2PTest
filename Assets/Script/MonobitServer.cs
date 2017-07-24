@@ -7,7 +7,6 @@ using UniRx;
 using UniRx.Triggers;
 
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 public class MonobitServer : MonobitEngine.MonoBehaviour
 {
@@ -27,6 +26,7 @@ public class MonobitServer : MonobitEngine.MonoBehaviour
     const string serverName = "TCAVRZemi";
 
 	bool reconnect = false;
+    System.IDisposable DisRemote;
 
     private void Start()
     {
@@ -51,7 +51,6 @@ public class MonobitServer : MonobitEngine.MonoBehaviour
             {
                 ConnectServer ();
             });
-			reconnect = false;
 		}
     }
 
@@ -65,14 +64,31 @@ public class MonobitServer : MonobitEngine.MonoBehaviour
     {
         Debug.Log("Enter Lobby.");
 
-        MonobitEngine.RoomSettings settings = new MonobitEngine.RoomSettings();
-        settings.maxPlayers = maxPlayer;
-        settings.isVisible = true;
-        settings.isOpen = true;
-        MonobitEngine.LobbyInfo lobby = new MonobitEngine.LobbyInfo();
-        lobby.Kind = LobbyKind.Default;
-        lobby.Name = lobbyName;
-        MonobitEngine.MonobitNetwork.JoinOrCreateRoom(roomName, settings, lobby);
+        if (reconnect)
+        {
+            reconnect = false;
+            DisRemote = this.UpdateAsObservable().Subscribe(_ =>
+            {
+                MonobitNetwork.GetRoomData().ToObservable()
+                                            .Where(r => r.name == roomName && r.playerCount > 0)
+                                            .Subscribe(r =>
+                {
+                    MonobitNetwork.JoinRoom(roomName);
+                    DisRemote.Dispose();
+                });
+            });
+        }
+        else
+        {
+            MonobitEngine.RoomSettings settings = new MonobitEngine.RoomSettings();
+            settings.maxPlayers = maxPlayer;
+            settings.isVisible = true;
+            settings.isOpen = true;
+            MonobitEngine.LobbyInfo lobby = new MonobitEngine.LobbyInfo();
+            lobby.Kind = LobbyKind.Default;
+            lobby.Name = lobbyName;
+            MonobitEngine.MonobitNetwork.JoinOrCreateRoom(roomName, settings, lobby);
+        }
     }
 
     private void OnJoinedRoom()

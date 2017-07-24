@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization; // DataContractSerializer
 using System.IO;
 
 public static class Extensions
@@ -23,15 +23,15 @@ public static class Extensions
         return result;
     }
 
-    public static T DeepClone<T>(this T obj)
-    {
-        using (var ms = new MemoryStream())
-        {
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(ms, obj);
-            ms.Position = 0;
+    //public static T DeepClone<T>(this T obj)
+    //{
+    //    using (var ms = new MemoryStream())
+    //    {
+    //        var formatter = new BinaryFormatter();
+    //        formatter.Serialize(ms, obj);
+    //        ms.Position = 0;
 
-            return (T)formatter.Deserialize(ms);
-        }
-    }
+    //        return (T)formatter.Deserialize(ms);
+    //    }
+    //}
 }
